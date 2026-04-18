@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Env & secrets
+.env
+.env.local
+.flaskenv
+
+# Virtualenvs
+.venv/
+venv/
+
+# Vercel
+.vercel/
+
+# Editors
+.idea/
+.vscode/

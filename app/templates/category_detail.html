@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4 text-center">Products in {{ category }}</h2>
+
+{% for sub in subcategories %}
+  <h4 class="mt-5">{{ sub.subcategory }}</h4>
+  <div class="row">
+    {% for product in products %}
+      {% if product.categoryid == sub.id %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            {% if product.image %}
+              <img src="{{ image_url(product.image) }}"
+                   class="card-img-top" alt="{{ product.name }}"
+                   style="object-fit: cover; height: 200px;">
+            {% else %}
+              <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                   style="height: 200px;">
+                <span class="text-muted">No Image</span>
+              </div>
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">
+                <a href="{{ url_for('product_2.product_detail', product_id=product.id) }}" class="text-dark">
+                  {{ product.name }}
+                </a>
+              </h5>
+              <p class="card-text"><strong>Price:</strong> ${{ "%.2f"|format(product.price) }}</p>
+            
+              <p class="text-muted small mb-1">
+                {% set rating = product.avg_rating or 0 %}
+                {% for i in range(1, 6) %}
+                  {% if i <= rating %}
+                    <i class="fas fa-star text-warning"></i>
+                  {% elif i - rating < 1 %}
+                    <i class="fas fa-star-half-alt text-warning"></i>
+                  {% else %}
+                    <i class="far fa-star text-warning"></i>
+                  {% endif %}
+                {% endfor %}
+                {% if product.num_reviews %}
+                  <span class="ml-1">({{ product.num_reviews }} review{{ '' if product.num_reviews == 1 else 's' }})</span>
+                {% else %}
+                  <span class="ml-1">(No reviews yet)</span>
+                {% endif %}
+              </p>
+              
+              {% if product.total_purchased is not none %}
+                <p class="text-muted small">Purchased {{ product.total_purchased }} time{{ '' if product.total_purchased == 1 else 's' }}</p>
+              {% endif %}
+            
+              {% if current_user.is_authenticated %}
+                <div class="mt-auto">
+                  <form onsubmit="addToWishlist(event, {{ product.id }})" style="display:inline-block;">
+                    <button type="submit" id="wishlist-btn-{{ product.id }}" class="btn btn-secondary btn-sm">
+                      Add to Wishlist
+                    </button>
+                  </form>
+                  <form onsubmit="addToCart(event, {{ product.id }})" style="display:inline-block; margin-left:5px;">
+                    <button type="submit" id="cart-btn-{{ product.id }}" class="btn btn-secondary btn-sm">
+                      Add to Cart
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+            
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endfor %}
+
+{% endblock %}
+
+<script>
+  function addToWishlist(event, productId) {
+    event.preventDefault();
+    
+    fetch("{{ url_for('wishlist.wishlist_add', product_id=0) }}".replace('0', productId), {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (response.ok) {
+        let button = document.getElementById(`wishlist-btn-${productId}`);
+        button.classList.remove("btn-secondary");
+        button.classList.add("btn-warning");
+        button.innerText = "⭐ Go to Wishlist";
+        button.onclick = function() {
+          window.location.href = "{{ url_for('wishlist.wishlist') }}";
+        };
+      }
+    })
+    .catch(error => console.error("Error:", error));
+  }
+
+  function addToCart(event, productId) {
+    event.preventDefault();
+    
+    fetch("{{ url_for('cart.cart_add', product_id=0) }}".replace('0', productId), {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (response.ok) {
+        let button = document.getElementById(`cart-btn-${productId}`);
+        button.classList.remove("btn-secondary");
+        button.classList.add("btn-info");
+        button.innerText = "View Cart";
+        button.onclick = function() {
+          window.location.href = "{{ url_for('cart.cart') }}";
+        };
+      }
+    })
+    .catch(error => console.error("Error:", error));
+  }
+</script>

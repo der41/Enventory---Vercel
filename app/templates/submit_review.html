@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>{{ review_type }} Review for {{ item_name }}</h2>
+
+  <p class="lead">
+    Thank you for taking the time to provide feedback. Your review helps us maintain the highest quality standards for our community.
+  </p>
+
+  <form method="POST">
+    <div class="form-group">
+      <label for="rating"><strong>Overall Rating (1–5):</strong></label>
+      <select name="rating" id="rating" class="form-control" required>
+        <option value="">Select a rating</option>
+        <option value="5">5 - Excellent</option>
+        <option value="4">4 - Good</option>
+        <option value="3">3 - Average</option>
+        <option value="2">2 - Below Average</option>
+        <option value="1">1 - Poor</option>
+      </select>
+    </div>
+
+    <div class="form-group mt-3">
+      <label for="comment"><strong>Your Comments:</strong></label>
+      <textarea name="comment" id="comment" class="form-control" rows="4" placeholder="Share your experience..." required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">Submit Your Review</button>
+  </form>
+</div>
+{% endblock %}

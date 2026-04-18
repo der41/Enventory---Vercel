@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <div class="card p-4 shadow-sm">
+    <h2 class="mb-4">Order Fulfillment Dashboard</h2>
+
+    {% if lineitems %}
+    <table class="table table-bordered table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th>Purchase ID</th>
+          <th>Line #</th>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in lineitems %}
+        <tr>
+          <td>{{ item.purchase_id }}</td>
+          <td>{{ item.linenumber }}</td>
+          <td>{{ item.product_name }}</td>
+          <td>{{ item.qty }}</td>
+          <td>
+            {% if item.status == 'Received' %}
+              <span style="color:green;">{{ item.status }}</span>
+            {% elif item.status == 'Pending Fulfillment' %}
+              <span style="color:darkblue;">{{ item.status }}</span>
+            {% elif item.status == 'Closed' %}
+              <span style="color:gray;">{{ item.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('orderfulfillment_bp.edit_fulfillment', lineitem_id=item.lineitem_id) }}" class="btn btn-primary btn-sm">Edit Fulfillment</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No orders to fulfill at this time.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

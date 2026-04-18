@@ -1,0 +1,57 @@
+body {
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  h1, h2, h3, h4, .jumbotron h1, .section-title, .card-title {
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+  /* to adjust size of top navigation bar*/
+.navbar {
+    height: 60px; /* increase as needed */
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 1.1rem; /* optional: larger font for balance */
+  }
+
+.search-bar {
+  background-color: white;
+  border-radius: 40px;
+  padding: 3px 9px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 35px;
+}
+
+.search-button {
+  background-color: #ff9900;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.search-button i {
+  font-size: 1.1rem;
+}

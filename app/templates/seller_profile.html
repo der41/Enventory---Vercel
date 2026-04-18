@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-3">Seller Profile for <strong>{{ seller.username }}</strong></h2>
+
+  <!-- Back to Home Button -->
+  <a href="{{ url_for('index.index') }}" class="btn btn-outline-primary mb-4">
+    <i class="fas fa-home"></i> Back to Home
+  </a>
+
+  <!-- Average Rating -->
+  {% if avg_rating %}
+    <div class="mb-4">
+      <h5>⭐ Overall Rating: {{ "%.1f"|format(avg_rating) }} / 5</h5>
+      {% for i in range(1, 6) %}
+        {% if i <= avg_rating %}
+          <i class="fas fa-star text-warning"></i>
+        {% elif i - avg_rating < 1 %}
+          <i class="fas fa-star-half-alt text-warning"></i>
+        {% else %}
+          <i class="far fa-star text-warning"></i>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="alert">
+      <i class="fas fa-info-circle"></i> No ratings yet for this seller.
+    </div>
+  {% endif %}
+
+  <hr>
+
+  <!-- Reviews Header with Sort -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Reviews:</h4>
+    {% if reviews %}
+    <div>
+      <button class="btn btn-sm btn-secondary" onclick="sortReviews('newest')">Sort: Newest</button>
+      <button class="btn btn-sm btn-secondary" onclick="sortReviews('oldest')">Sort: Oldest</button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Reviews Section -->
+  {% if reviews %}
+    <p class="text-muted">{{ reviews|length }} review{{ '' if reviews|length == 1 else 's' }} for this seller.</p>
+
+    <div class="row" id="reviews-container">
+      {% for review in reviews %}
+        <div class="col-md-6 mb-4 review-card" data-time="{{ review.time_created.timestamp() if review.time_created }}">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title mb-2">
+                {% for i in range(1, 6) %}
+                  {% if i <= review.rating %}
+                    <i class="fas fa-star text-warning"></i>
+                  {% else %}
+                    <i class="far fa-star text-warning"></i>
+                  {% endif %}
+                {% endfor %}
+              </h5>
+              <p class="card-text">{{ review.comment or "No comment provided." }}</p>
+              {% if review.time_created %}
+                <small class="text-muted">Submitted on {{ review.time_created.strftime('%B %d, %Y') }}</small>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="text-center mt-4">
+      <span class="badge badge-secondary p-3" style="font-size: 1.1rem;">
+        🛒 No reviews yet for this seller.
+      </span>
+    </div>
+  {% endif %}
+
+  <hr class="mt-5">
+
+  <!-- Seller's Other Products -->
+  {% if products %}
+    <h4 class="mb-4">🛍️ Other Products by {{ seller.username }}</h4>
+    <div class="row">
+      {% for product in products %}
+        <div class="col-md-3 mb-4">
+          <div class="card h-100 shadow-sm">
+            <img src="{{ image_url(product.image) }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ product.name }}">
+            <div class="card-body text-center">
+              <h6 class="card-title">{{ product.name }}</h6>
+              <p class="text-muted mb-1">${{ "%.2f"|format(product.price) }}</p>
+              <a href="{{ url_for('product_2.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">View Product</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- JavaScript to sort reviews dynamically -->
+<script>
+function sortReviews(order) {
+  const container = document.getElementById('reviews-container');
+  const cards = Array.from(container.getElementsByClassName('review-card'));
+  cards.sort((a, b) => {
+    const timeA = parseFloat(a.dataset.time || 0);
+    const timeB = parseFloat(b.dataset.time || 0);
+    return order === 'newest' ? timeB - timeA : timeA - timeB;
+  });
+  cards.forEach(card => container.appendChild(card));
+}
+</script>
+
+{% endblock %}

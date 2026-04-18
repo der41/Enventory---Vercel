@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <div class="card p-4 shadow-sm">
+    <h2 class="mb-4">Update Fulfillment Status</h2>
+
+    <div class="mb-3">
+      <strong>Product:</strong> {{ item.product_name }}<br>
+      <strong>Quantity Ordered:</strong> {{ item.qty }}<br>
+      <strong>Buyer Address:</strong> {{ item.address }}<br>
+    </div>
+
+    <div class="mb-3">
+      <strong>Time Purchased:</strong> {{ item.time_purchased or 'N/A' }}<br>
+      <strong>In Process Time:</strong> {{ item.inprocesstimestamp or 'N/A' }}<br>
+      <strong>Fulfillment Time:</strong> {{ item.fulfillmenttimestamp or 'N/A' }}<br>
+      <strong>Current Status:</strong>
+      {% if item.status == 'Received' %}
+        <span style="color:green;">{{ item.status }}</span>
+      {% elif item.status == 'Pending Fulfillment' %}
+        <span style="color:darkblue;">{{ item.status }}</span>
+      {% elif item.status == 'Closed' %}
+        <span style="color:gray;">{{ item.status }}</span>
+      {% endif %}
+    </div>
+
+    <form method="POST">
+      <div class="form-group mb-4">
+        <label for="status_select"><strong>Change Fulfillment Status</strong></label>
+        <select class="form-control" name="status" required>
+          <option value="inprocess">Mark as In-Process</option>
+          <option value="fulfilled">Mark as Fulfilled</option>
+        </select>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success px-4">Update</button>
+        <a href="{{ url_for('orderfulfillment_bp.view_orders') }}" class="btn btn-secondary px-4">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

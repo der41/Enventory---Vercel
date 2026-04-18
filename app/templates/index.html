@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+{% if featured_products %}
+<div class="container mb-5">
+  <div class="row">
+
+    <!-- Left: Jumbotron -->
+    <div class="col-md-6 mb-4">
+      <div class="jumbotron text-center bg-light py-4 border rounded h-100">
+        <h1 class="display-5 mt-2">Welcome to</h1>
+        <img src="{{ url_for('static', filename='images/eventory_logo.png') }}" alt="Eventory Logo" style="height: 150px;" class="mb-2">
+        <p class="lead">Find the perfect items for every event and occasion.</p>
+      </div>
+    </div>
+
+    <!-- Right: Featured Carousel -->
+    <div class="col-md-6 mb-4">
+      <h4 class="text-center mb-3">✨ Featured Products ✨</h4>
+      <div id="featuredCarousel" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">
+          {% for product in featured_products %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <div class="d-flex justify-content-center">
+              <div class="card" style="width: 18rem;">
+                <img src="{{ image_url(product.image) }}"
+                     class="card-img-top" alt="{{ product.name }}"
+                     style="object-fit: cover; height: 200px;">
+                <div class="card-body text-center">
+                  <h5 class="card-title">{{ product.name }}</h5>
+                  <p class="badge-price">${{ "%.2f"|format(product.price) }}</p>
+                  <a href="{{ url_for('product_2.product_detail', product_id=product.id) }}" class="btn btn-primary">View Product</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <a class="carousel-control-prev" href="#featuredCarousel" role="button" data-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#featuredCarousel" role="button" data-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="sr-only">Next</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+
+
+<!-- shop by event, shop by category -->
+<div class="text-center mb-4">
+  <h5 class="mb-3">Shop By</h5>
+  <div class="d-flex justify-content-center">
+    <div class="mx-2" style="width: 180px;">
+      <a href="{{ url_for('events.list_events') }}" class="btn btn-outline-primary btn-lg w-100">
+        🎉 Events
+      </a>
+    </div>
+    <div class="mx-2" style="width: 180px;">
+      <a href="{{ url_for('categories.list_categories') }}" class="btn btn-outline-danger btn-lg w-100">
+        🛍️ Categories
+      </a>
+    </div>
+  </div>
+</div>
+
+
+  
+<h2>Shop All Products:</h2>
+{% if k %}
+  <p>Showing top {{ k }} most expensive products.</p>
+{% endif %}
+<!-- Top-K Filter Form with Sort Dropdown -->
+<div class="container mb-4">
+  <form method="GET" action="{{ url_for('index.index') }}">
+    <div class="form-row align-items-center">
+
+      <!-- Top-K -->
+      <div class="col-auto">
+        <label class="sr-only" for="k">Top K</label>
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Show Top</span>
+          </div>
+          <input type="number" min="1" name="k" id="k" value="{{ k or '' }}" class="form-control" placeholder="e.g. 5">
+        </div>
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div class="col-auto">
+        <label class="sr-only" for="sort">Sort</label>
+        <select name="sort" id="sort" class="form-control mb-2">
+          <option value="">Sort by Price/Popularity</option>
+          <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low → High</option>
+          <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High → Low</option>
+          <option value="most_popular" {% if sort == 'most_popular' %}selected{% endif %}>Most Popular</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="col-auto mb-2">
+        <button class="btn btn-primary" type="submit">Apply</button>
+        {% if k or sort %}
+        <a href="{{ url_for('index.index') }}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Product cards -->
+<div class="container">
+  <div class="row">
+    {% for product in avail_products %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          {% if product.image %}
+            <img src="{{ image_url(product.image) }}"
+                 class="card-img-top" alt="{{ product.name }}"
+                 style="object-fit: cover; height: 200px;">
+          {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+              <span class="text-muted">No Image</span>
+            </div>
+          {% endif %}
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">
+              <a href="{{ url_for('product_2.product_detail', product_id=product.id) }}" class="text-dark">
+                {{ product.name }}
+              </a>
+            </h5>            
+            <p class="card-text"><strong>Price:</strong> ${{ "%.2f"|format(product.price) }}</p>
+             <!-- for adding stars onto product card -->
+            {% if product.num_reviews %}
+            <p class="text-muted small mb-1">
+              {% for i in range(1, 6) %}
+                {% if i <= product.avg_rating %}
+                  <i class="fas fa-star text-warning"></i>
+                {% elif i - product.avg_rating < 1 %}
+                  <i class="fas fa-star-half-alt text-warning"></i>
+                {% else %}
+                  <i class="far fa-star text-warning"></i>
+                {% endif %}
+              {% endfor %}
+              <span class="ml-1">({{ product.num_reviews }} review{{ '' if product.num_reviews == 1 else 's' }})</span>
+            </p>
+            {% else %}
+            <p class="text-muted small mb-1">
+              {% for i in range(5) %}
+                <i class="far fa-star text-warning"></i>
+              {% endfor %}
+              <span class="ml-1">(No reviews yet)</span>
+            </p>
+            {% endif %}
+          <!-- to list total number purchased -->
+          {% if product.total_purchased is not none %}
+            <p class="text-muted small">Purchased {{ product.total_purchased }} time{{ '' if product.total_purchased == 1 else 's' }}</p>
+          {% endif %}
+
+            {% if current_user.is_authenticated %}
+            <div class="mt-auto">
+              <!-- Wishlist Form -->
+              <form onsubmit="addToWishlist(event, {{ product.id }})" style="display:inline-block;">
+                <button id="wishlist-btn-{{ product.id }}" type="submit" class="btn btn-secondary btn-sm">
+                  Add to Wishlist
+                </button>
+              </form>
+              <!-- Cart Form -->
+              <form onsubmit="addToCart(event, {{ product.id }})" style="display:inline-block; margin-left:5px;">
+                <button id="cart-btn-{{ product.id }}" type="submit" class="btn btn-secondary btn-sm">
+                  Add to Cart
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- {% if current_user.is_authenticated %}
+<h2>Your entire purchase history:</h2>
+<table class='table table-hover table-bordered container'>
+  <thead class="thead-dark">
+    <tr>
+      <th>Purchase ID</th>
+      <th>Address ID</th>
+      <th>Time Purchased</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for purchase in purchase_history %}
+    <tr>
+      <td>{{ purchase.id }}</td>
+      <td>{{ purchase.addressid }}</td>
+      <td>{{ purchase.time_purchased }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p><a href="{{ url_for('accounts.login') }}">Log in</a> to see your purchase history!</p>
+{% endif %} -->
+
+<script>
+  function addToWishlist(event, productId) {
+    event.preventDefault();
+    
+    fetch("{{ url_for('wishlist.wishlist_add', product_id=0) }}".replace('0', productId), {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (response.ok) {
+        let button = document.getElementById(`wishlist-btn-${productId}`);
+        button.classList.remove("btn-secondary");
+        button.classList.add("btn-warning");
+        button.innerText = "⭐ Go to Wishlist";
+        button.onclick = function() {
+          window.location.href = "{{ url_for('wishlist.wishlist') }}";
+        };
+      }
+    })
+    .catch(error => console.error("Error:", error));
+  }
+
+  function addToCart(event, productId) {
+    event.preventDefault();
+    
+    fetch("{{ url_for('cart.cart_add', product_id=0) }}".replace('0', productId), {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (response.ok) {
+        let button = document.getElementById(`cart-btn-${productId}`);
+        button.classList.remove("btn-secondary");
+        button.classList.add("btn-info");
+        button.innerText = "View Cart";
+        button.onclick = function() {
+          window.location.href = "{{ url_for('cart.cart') }}";
+        };
+      }
+    })
+    .catch(error => console.error("Error:", error));
+  }
+</script>
+
+<br><br>
+<!-- Page arrows -->
+<div class="text-center mb-2">
+  <p class="text-muted">Showing {{ start_index }}–{{ end_index }} of {{ total_products }} products</p>
+</div>
+{% if total_pages > 1 %}
+  <div class="d-flex justify-content-center mt-4">
+    <nav>
+      <ul class="pagination">
+        {% if page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('index.index', page=page-1, k=k) }}">&laquo; Previous</a>
+        </li>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('index.index', page=p, k=k) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('index.index', page=page+1, k=k) }}">Next &raquo;</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+{% endif %}
+
+{% endblock %}

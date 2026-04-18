@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4 text-center">Products for "{{ category_name }}"</h2>
+
+<div class="mb-4">
+  <h5>Subcategories:</h5>
+  <ul>
+    {% for subcat in subcategories %}
+      <li>{{ subcat[0] }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="row">
+  {% for product in products %}
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        {% if product.image %}
+          <img src="{{ image_url(product.image) }}" class="card-img-top" alt="{{ product.name }}">
+        {% else %}
+          <div class="card-img-top bg-light text-center" style="height: 200px;">
+            <span class="text-muted">No Image</span>
+          </div>
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title">
+            <a href="{{ url_for('product_2.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+          </h5>
+          <p class="card-text">${{ "%.2f"|format(product.price) }}</p>
+          <p class="card-text">{{ product.description or 'No description available.' }}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+  <div class="container mt-4">
+    <h2 class="mb-4">Your Account Details</h2>
+
+    <!-- Bootstrap Row for Horizontal Layout -->
+    <div class="row">
+      <!-- Account Info Section with Card -->
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Account Information</h5>
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled">
+              <li class="mb-3">
+                <i class="fas fa-user-circle me-2"></i><strong>Username:</strong> {{ account.username }}
+              </li>
+              <li class="mb-3">
+                <i class="fas fa-envelope me-2"></i><strong>Email:</strong> {{ account.email }}
+              </li>
+              <li class="mb-3">
+                <i class="fas fa-calendar-alt me-2"></i><strong>Date Account Created:</strong> {{ acctcreationdate.strftime('%B %d, %Y') }}
+              </li>
+              {% if account.sellerid %}
+                <li class="mb-3">
+                  <i class="fas fa-store-alt me-2"></i><strong>Seller ID:</strong> {{ account.sellerid }}
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loyalty Info Section -->
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">Loyalty Information</h5>
+          </div>
+          <div class="card-body">
+            <ul class="list-unstyled">
+              <li class="mb-3">
+                <i class="fas fa-crown me-2"></i><strong>Loyalty Status:</strong> {{ loyalty_status }}
+              </li>
+
+              
+              <!-- Conditional Rendering of Loyalty Bars -->
+              {% if loyalty_status == 'Silver' %}
+                <!-- Add inline styles for testing -->
+                <div class="loyalty-bar silver" style="height: 20px; background-color: #c0c0c0; border-radius: 5px;"></div>
+
+              {% endif %}
+              
+              {% if loyalty_status == 'Gold' %}
+              <div class="loyalty-bar gold" style="height: 20px; background-color: #ffd700; border-radius: 5px;"></div>
+              {% endif %}
+              {% if loyalty_status == 'Platinum' %}
+              <div class="loyalty-bar platinum" style="height: 20px; background-color: #e5e4e2; border-radius: 5px;"></div>
+              {% endif %}
+            <li class="mb-3">
+              <i class="fas fa-gift me-2"></i><strong>Loyalty Points:</strong> {{ loyalty_points }}
+            </li>
+            {% set max_points = 100000 %}
+            {% if loyalty_points < 500 %}
+            {% set progress = (loyalty_points / 500 * 100) | round(0, 'floor') %}
+            {% set next_tier = 'Gold' %}
+            {% elif loyalty_points < 2000 %}
+            {% set progress = ((loyalty_points - 500) / 1500 * 100) | round(0, 'floor') %}
+            {% set next_tier = 'Platinum' %}
+            {% else %}
+            {% set progress = 100 %}
+            {% set next_tier = 'MAX' %}
+            {% endif %}
+            </ul>
+            <p>Progress to next tier ({{ next_tier }}):</p>
+            <!-- Progress Bar Section -->
+            <div class="progress" style="height: 20px;">
+              <div 
+                class="progress-bar bg-info" 
+                role="progressbar" 
+                style="width: {{ progress }}%;" 
+                aria-valuenow="{{ progress }}" 
+                aria-valuemin="0" 
+                aria-valuemax="100">
+                {{ progress }}% - {{ next_tier }} 
+              </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Balance Management -->
+  <div class="container mt-5">
+    <h3 class="mb-4">Manage Account Balance</h3>
+    <ul>
+      <li><strong>Current Balance:</strong> $<span id="current-balance">{{ account.accountbalance }}</span></li>
+    </ul>
+
+    <!-- Balance Form -->
+    <form id="balance-form" method="POST" action="{{ url_for('accounts.account') }}">
+      <div class="mb-3">
+        <label for="deposit" class="form-label">Deposit: $</label>
+        <input type="number" id="deposit" name="deposit" step="0.01" min="0" placeholder="Enter deposit amount" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label for="withdraw" class="form-label">Withdraw: $</label>
+        <input type="number" id="withdraw" name="withdraw" step="0.01" min="0" placeholder="Enter withdrawal amount" class="form-control">
+      </div>
+      <button type="submit" class="btn btn-success">Update Balance</button>
+    </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <script>
+      window.addEventListener("load", () => {
+        const alertBox = document.querySelector(".alert");
+        if (alertBox) {
+          alertBox.scrollIntoView({ behavior: "smooth" });
+        }
+      });
+    </script>
+  
+    <script>
+      document.getElementById('balance-form').addEventListener('submit', function(e) {
+        const deposit = document.getElementById('deposit').value.trim();
+        const withdraw = document.getElementById('withdraw').value.trim();
+    
+        if (deposit && withdraw) {
+          e.preventDefault();
+          alert("Please fill either deposit or withdraw — not both.");
+        }
+      });
+    </script>
+  </div>
+
+  <!-- Seller Reviews -->
+  {% if account.sellerid %}
+    <div class="mb-5">
+      <h2>Customer Feedback on You:</h2>
+      <div class="row">
+        {% for review in seller_reviews %}
+          <div class="col-md-6 mb-3">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h6><span class="badge badge-primary">Seller Feedback</span></h6>
+                <p class="mt-2">
+                  {% for i in range(1, 6) %}
+                    {% if i <= review.rating %}
+                      <i class="fas fa-star text-warning"></i>
+                    {% else %}
+                      <i class="far fa-star text-warning"></i>
+                    {% endif %}
+                  {% endfor %}
+                </p>
+                <p>{{ review.rating }} out of 5 stars</p>
+                <p>{{ review.comment }}</p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- User Written Product Reviews -->
+  {% if user_reviews %}
+    <div class="mb-5">
+      <h2>Products You Reviewed:</h2>
+      <div class="row">
+        {% for review in user_reviews %}
+          <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h6><span class="badge badge-primary">Product Feedback</span></h6>
+                <h5 class="card-title mt-2">{{ review.name }}</h5>
+                <p>
+                  {% for i in range(1, 6) %}
+                    {% if i <= review.rating %}
+                      <i class="fas fa-star text-warning"></i>
+                    {% else %}
+                      <i class="far fa-star text-warning"></i>
+                    {% endif %}
+                  {% endfor %}
+                </p>
+                <p>{{ review.rating }} out of 5 stars</p>
+                <p class="card-text">{{ review.comment }}</p>
+
+                <!-- Buttons: View, Edit, Delete -->
+                <div class="mt-3">
+                  <a href="{{ url_for('product_2.product_detail', product_id=review.productid) }}" class="btn btn-outline-primary btn-sm">View Product</a>
+                  <a href="{{ url_for('reviews.edit_review', review_id=review.id) }}" class="btn btn-outline-secondary btn-sm ml-2">Edit</a>
+                  <form action="{{ url_for('reviews.delete_review', review_id=review.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-danger btn-sm ml-2">Delete</button>
+                  </form>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <div class="mb-5">
+      <h2>Products You Reviewed:</h2>
+      <p>You haven’t written any reviews yet.</p>
+    </div>
+  {% endif %}
+
+  <!-- Recent Purchases -->
+  {% if purchase_in_process %}
+    <div class="mb-5">
+      <h2>Your Recent Purchases Being Prepared:</h2>
+      <div class="card shadow-sm p-3 mb-4">
+        <div class="table-responsive">
+          <table class="table table-hover table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>📅 Purchase Date</th>
+                <th>🛒 Items</th>
+                <th>🏠 Delivery Address</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for purchase in purchase_in_process %}
+                <tr>
+                  <td>{{ purchase.time_purchased.strftime('%B %d, %Y') }}</td>
+                  <td>
+                    {% set images = get_top3_images(purchase.id) %}
+                    {% if images %}
+                      {% for img in images %}
+                        <img src="{{ image_url(img) }}" alt="Item" style="width:80px;height:auto;object-fit:cover;margin-right:5px;">
+                      {% endfor %}
+                    {% else %} No images available
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% set addr = get_address(purchase.addressid) %}
+                    {% if addr %}
+                      {{ addr.streetaddresslineone }}{% if addr.streetaddresslinetwo %}, {{ addr.streetaddresslinetwo }}{% endif %}<br>
+                      {{ addr.cityname }}, {{ addr.state }} {{ addr.zipcode }}<br>
+                      {{ addr.country }}
+                    {% else %} No address available
+                    {% endif %}
+                  </td>
+                  <td><span class="badge badge-warning">Being prepared</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Entire Purchase History -->
+  {% if purchase_history %}
+    <div class="mb-5">
+      <h2>Your Entire Purchase History:</h2>
+      <div class="card shadow-sm p-3 mb-4">
+        <div class="table-responsive">
+          <table class="table table-hover table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>📅 Purchase Date</th>
+                <th>🛒 Items</th>
+                <th>🏠 Delivery Address</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for purchase in purchase_history|reverse %}
+                <tr>
+                  <td>{{ purchase.time_purchased.strftime('%B %d, %Y') }}</td>
+                  <td>
+                    {% set images = get_top3_images(purchase.id) %}
+                    {% if images %}
+                      {% for img in images %}
+                        <img src="{{ image_url(img) }}" alt="Item" style="width:80px;height:auto;object-fit:cover;margin-right:5px;">
+                      {% endfor %}
+                    {% else %} No images available
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% set addr = get_address(purchase.addressid) %}
+                    {% if addr %}
+                      {{ addr.streetaddresslineone }}{% if addr.streetaddresslinetwo %}, {{ addr.streetaddresslinetwo }}{% endif %}<br>
+                      {{ addr.cityname }}, {{ addr.state }} {{ addr.zipcode }}<br>
+                      {{ addr.country }}
+                    {% else %} No address available
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{{ url_for('purchase.purchase_detail', purchase_id=purchase.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Account Management -->
+  <div class="card shadow-sm p-4 mb-5">
+    <h3>Account Management</h3>
+    <p>Here, you can edit your account details or delete your account permanently.</p>
+    <div class="row mt-3">
+      <div class="col-md-6 mb-2">
+        <a href="{{ url_for('accounts.edit_account') }}" class="btn btn-secondary btn-block">Edit Account Info</a>
+      </div>
+      <div class="col-md-6 mb-2">
+        <a href="#" data-toggle="modal" data-target="#deleteAccountModal" class="btn btn-danger btn-block">Delete Account</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="deleteAccountModal" tabindex="-1" role="dialog" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>If you wish to delete your account, please note that this action is irreversible. All your data, including reviews, purchases, and account balance, will be permanently removed.</p>
+        </div>
+        <div class="modal-footer">
+          <form method="POST" action="{{ url_for('accounts.delete_account') }}" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete Account</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+
+<!-- CSS for my loyalty status bars -->
+<style>
+.progress-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: black; 
+  font-weight: bold; 
+  background-color: transparent;
+}
+.loyalty-bar {
+  height: 20px;
+  margin-top: 10px;
+  border-radius: 5px;
+  width: 100%; 
+}
+
+.silver {
+  background-color: #c0c0c0;
+}
+
+.gold {
+  background-color: #ffd700;
+}
+
+.platinum {
+  background-color: #e5e4e2;
+}
+
+</style>

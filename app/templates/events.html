@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4 text-center">🎉 Shop by Events</h2>
+
+<style>
+  .event-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 15px;
+    min-height: 220px;
+  }
+
+  .event-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .event-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+  }
+
+  .event-blurb {
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+</style>
+
+<div class="d-flex flex-wrap justify-content-center gap-4">
+  {% for event in events %}
+    <div class="card shadow-sm m-2 p-3 text-center event-card" style="width: 260px;">
+      <!-- puts the cute icons on the events -->
+      {% if 'Birthday' in event.name %}
+        <div class="event-icon"><i class="fas fa-birthday-cake"></i></div>
+      {% elif 'Camping' in event.name %}
+        <div class="event-icon"><i class="fas fa-campground"></i></div>
+      {% elif 'Pool' in event.name %}
+        <div class="event-icon"><i class="fas fa-swimmer"></i></div>
+      {% elif 'Halloween' in event.name %}
+        <div class="event-icon"><i class="fas fa-ghost"></i></div>
+      {% elif 'Gaming' in event.name %}
+        <div class="event-icon"><i class="fas fa-gamepad"></i></div>
+      {% elif 'Arts' in event.name or 'Craft' in event.name %}
+        <div class="event-icon"><i class="fas fa-paint-brush"></i></div>
+      {% else %}
+        <div class="event-icon"><i class="fas fa-star"></i></div>
+      {% endif %}
+
+      <h5 class="card-title">{{ event.name }}</h5>
+      {% if event.description %}
+        <p class="event-blurb">{{ event.description }}</p>
+      {% endif %}
+      <a href="{{ url_for('events.view_products_by_event', event_name=event.name) }}" class="btn btn-primary btn-sm mt-2">
+        View Products
+      </a>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

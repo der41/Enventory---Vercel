@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <br><br>
+
+  {% if current_user.is_authenticated %}
+    <h2 class="mb-4 text-center">Your Wishlist</h2>
+
+    {% if items %}
+      <div class="container">
+        <div class="row">
+          {% for product in items %}
+            <div class="col-md-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                {% if product.image %}
+                  <img src="{{ image_url(product.image) }}"
+                       class="card-img-top"
+                       alt="{{ product.product_name }}"
+                       style="object-fit: cover; height: 200px;">
+                {% else %}
+                  <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <span class="text-muted">No Image</span>
+                  </div>
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">
+                    <a href="{{ url_for('product_2.product_detail', product_id=product.productid) }}" class="text-dark">
+                      {{ product.product_name }}
+                    </a>
+                  </h5>
+
+                  <p class="card-text text-truncate">{{ product.description }}</p>
+                  <p class="card-text"><strong>Price:</strong> ${{ "%.2f"|format(product.price) }}</p>
+
+                  {% if product.num_reviews %}
+                    <p class="text-muted small mb-1">
+                      {% for i in range(1,6) %}
+                        {% if i <= product.avg_rating %}
+                          <i class="fas fa-star text-warning"></i>
+                        {% elif i - product.avg_rating < 1 %}
+                          <i class="fas fa-star-half-alt text-warning"></i>
+                        {% else %}
+                          <i class="far fa-star text-warning"></i>
+                        {% endif %}
+                      {% endfor %}
+                      <span class="ml-1">({{ product.num_reviews }} review{{ '' if product.num_reviews == 1 else 's' }})</span>
+                    </p>
+                  {% else %}
+                    <p class="text-muted small mb-1">
+                      {% for i in range(5) %}
+                        <i class="far fa-star text-warning"></i>
+                      {% endfor %}
+                      <span class="ml-1">(No reviews yet)</span>
+                    </p>
+                  {% endif %}
+
+                  <div class="mt-auto">
+                    {% if product.in_cart %}
+                      <a href="{{ url_for('cart.cart') }}" class="btn btn-info btn-sm">View Cart</a>
+                    {% else %}
+                      <form action="{{ url_for('cart.cart_add',
+                                                product_id=product.productid,
+                                                next=url_for('wishlist.wishlist')) }}"
+                            method="POST" style="display:inline-block;">
+                        <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                      </form>
+                    {% endif %}
+
+                    <form action="{{ url_for('wishlist.wishlist_remove', wishlist_id=product.id) }}"
+                          method="POST"
+                          style="display:inline-block; margin-left:8px;">
+                      <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="container text-center" style="margin:60px 0;">
+        <h4>Your wishlist is empty</h4>
+        <a href="{{ url_for('index.index') }}" class="btn btn-primary btn-lg mt-3">Browse Products</a>
+      </div>
+    {% endif %}
+
+    {# —————————————————————————————— #}
+    {# Recommended Section (optional) #}
+    {% if recommended %}
+      <h2 class="mt-5 mb-4 text-center">You May Also Like</h2>
+      <div class="container">
+        <div class="row">
+          {% for product in recommended %}
+            <div class="col-md-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                {% if product.image %}
+                  <img src="{{ image_url(product.image) }}"
+                       class="card-img-top"
+                       alt="{{ product.name }}"
+                       style="object-fit: cover; height: 200px;">
+                {% else %}
+                  <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <span class="text-muted">No Image</span>
+                  </div>
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">
+                    <a href="{{ url_for('product_2.product_detail', product_id=product.id) }}"
+                       class="text-dark">
+                      {{ product.name }}
+                    </a>
+                  </h5>
+
+                  <p class="card-text text-truncate">{{ product.description }}</p>
+                  <p class="card-text"><strong>Price:</strong> ${{ "%.2f"|format(product.price) }}</p>
+
+                  <div class="mt-auto">
+                    {% if product.in_cart %}
+                      <a href="{{ url_for('cart.cart') }}" class="btn btn-info btn-sm">View Cart</a>
+                    {% else %}
+                      <form action="{{ url_for('cart.cart_add',
+                                                product_id=product.id,
+                                                next=url_for('wishlist.wishlist')) }}"
+                            method="POST" style="display:inline-block;">
+                        <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                      </form>
+                    {% endif %}
+
+                    <form action="{{ url_for('wishlist.wishlist_add', product_id=product.id) }}"
+                          method="POST"
+                          style="display:inline-block; margin-left:8px;">
+                      <button type="submit" class="btn btn-secondary btn-sm">Add to Wishlist</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <p class="container">
+      <a href="{{ url_for('accounts.login') }}">Log in</a> to view your wishlist.
+    </p>
+  {% endif %}
+{% endblock %}
+

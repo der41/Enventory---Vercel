@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+  <div class="d-flex align-items-center mb-4">
+    <img src="{{ url_for('static', filename='images/eventory_logo.png') }}" height="50" class="mr-3">
+    <h2 class="font-weight-bold text-dark">📈 Seller Insights Dashboard</h2>
+  </div>
+
+  <!-- Filters -->
+  <form id="filterForm" class="form-inline mb-4">
+    <label class="mr-2 font-weight-bold">Select Period:</label>
+    <select class="form-control mr-2" id="date_filter" name="date_filter" onchange="submitFilters();">
+      <option value="YTD" {% if date_filter == 'YTD' %}selected{% endif %}>Year To Date</option>
+      <option value="ThisQuarter" {% if date_filter == 'ThisQuarter' %}selected{% endif %}>This Quarter</option>
+      <option value="LastYear" {% if date_filter == 'LastYear' %}selected{% endif %}>Last Year</option>
+    </select>
+
+    <label class="mr-2 font-weight-bold">Or Manual Date Range:</label>
+    <input type="date" name="start_date" value="{{ manual_start }}" class="form-control mr-2" onchange="submitFilters();">
+    <input type="date" name="end_date" value="{{ manual_end }}" class="form-control mr-2" onchange="submitFilters();">
+  </form>
+
+  <!-- KPI Tiles -->
+  <div class="row text-center mb-5">
+    <div class="col-md-4 mb-2">
+      <a href="{{ url_for('inventory_bp.view_inventory') }}" class="text-decoration-none">
+        <div class="card bg-light shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-muted">Products Out of Stock</h6>
+            <h2 class="text-primary">{{ zero_qty_products }}</h2>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="{{ url_for('orderfulfillment_bp.view_orders') }}" class="text-decoration-none">
+        <div class="card bg-light shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-muted">Unprocessed Orders</h6>
+            <h2 class="text-success">{{ unprocessed_orders }}</h2>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="{{ url_for('orderfulfillment_bp.view_orders') }}" class="text-decoration-none">
+        <div class="card bg-light shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="text-muted">Orders In Process</h6>
+            <h2 class="text-warning">{{ in_process_unfulfilled_orders }}</h2>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="text-dark text-center">Total Sales by Product ($)</h5>
+          <canvas id="salesPieChart" style="cursor:pointer;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="text-dark text-center">Monthly Sales Quantity</h5>
+          <canvas id="monthlyBarChart" style="cursor:pointer;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="text-dark text-center">Avg Fulfillment vs Processing Time by Month (Days)</h5>
+          <canvas id="avgTimesLineChart" style="cursor:pointer;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal for Zoom -->
+<div class="modal fade" id="chartModal" tabindex="-1" role="dialog" aria-labelledby="chartModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <canvas id="modalChart" style="height: 80vh;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js and Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<script>
+const vividPalette = ['#ff9900', '#146eb4', '#232f3e', '#34a853', '#ea4335', '#fbbc05', '#4285f4'];
+
+function submitFilters() {
+  document.getElementById('filterForm').submit();
+}
+
+// Pie Chart: Total Sales by Product
+const salesData = {{ sales_by_product|tojson }};
+const salesPieCtx = document.getElementById('salesPieChart').getContext('2d');
+const salesPieChart = new Chart(salesPieCtx, {
+  type: 'pie',
+  data: {
+    labels: salesData.map(x => x.product),
+    datasets: [{
+      data: salesData.map(x => x.sales),
+      backgroundColor: vividPalette,
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      datalabels: {
+        color: '#fff',
+        formatter: (value) => `$${value.toLocaleString()}`
+      }
+    }
+  },
+  plugins: [ChartDataLabels]
+});
+
+// Bar Chart: Monthly Sales Quantity
+const monthlyQty = {{ monthly_qty|tojson }};
+const months = Object.keys(monthlyQty);
+const products = new Set();
+months.forEach(month => {
+  Object.keys(monthlyQty[month]).forEach(p => products.add(p));
+});
+const barDatasets = [];
+products.forEach((product, i) => {
+  barDatasets.push({
+    label: product,
+    data: months.map(m => monthlyQty[m][product] || 0),
+    backgroundColor: vividPalette[i % vividPalette.length],
+  });
+});
+const monthlyBarCtx = document.getElementById('monthlyBarChart').getContext('2d');
+const monthlyBarChart = new Chart(monthlyBarCtx, {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: barDatasets
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: { stacked: true },
+      y: { stacked: true }
+    }
+  }
+});
+
+// Line Chart: Average Fulfillment and Processing Times
+const monthlyAvgTimes = {{ monthly_avg_times|tojson }};
+const avgMonths = monthlyAvgTimes.map(x => x.month);
+const avgFulfillment = monthlyAvgTimes.map(x => x.avg_fulfillment_days);
+const avgProcessing = monthlyAvgTimes.map(x => x.avg_processing_days);
+
+const avgTimesCtx = document.getElementById('avgTimesLineChart').getContext('2d');
+const avgTimesChart = new Chart(avgTimesCtx, {
+  type: 'line',
+  data: {
+    labels: avgMonths,
+    datasets: [
+      {
+        label: 'Fulfillment (Days)',
+        data: avgFulfillment,
+        borderColor: '#146eb4',
+        backgroundColor: '#146eb4',
+        fill: false,
+        tension: 0.3, // ✅ This makes the line smooth
+      },
+      {
+        label: 'Processing (Days)',
+        data: avgProcessing,
+        borderColor: '#ff9900',
+        backgroundColor: '#ff9900',
+        fill: false,
+        tension: 0.3, // ✅ Smooth too
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ${ctx.raw} days`
+        }
+      }
+    }
+  }
+});
+
+// Modal Zoom
+const modal = new bootstrap.Modal(document.getElementById('chartModal'));
+let modalChart;
+document.querySelectorAll('canvas').forEach(canvas => {
+  canvas.addEventListener('click', function() {
+    if (modalChart) { modalChart.destroy(); }
+    const clonedConfig = Chart.getChart(this).config;
+    const modalCtx = document.getElementById('modalChart').getContext('2d');
+    modalChart = new Chart(modalCtx, JSON.parse(JSON.stringify(clonedConfig)));
+    modal.show();
+  });
+});
+</script>
+
+{% endblock %}

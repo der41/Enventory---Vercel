@@ -1,0 +1,20 @@
+flask==2.3.3
+werkzeug==2.3.7
+flask-sqlalchemy>=3.0.5,<4.0.0
+flask-wtf>=1.1.1,<2.0.0
+flask-login>=0.6.2,<1.0.0
+psycopg2-binary>=2.9.7,<3.0.0
+email-validator>=2.0.0
+python-dotenv>=1.0.0
+humanize>=4.12.1
+faker>=19.3.1
+
+# Chatbot stack — FAISS index is pre-built offline and loaded from vector_index/
+langchain>=0.3.24,<0.4.0
+langchain-community>=0.3.22,<0.4.0
+langchain-google-genai>=0.1.0
+google-generativeai>=0.3.0
+faiss-cpu>=1.10.0
+
+# Vercel Blob storage for product image uploads
+vercel_blob>=0.3.0

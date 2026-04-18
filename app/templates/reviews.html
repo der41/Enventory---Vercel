@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<br><br>
+
+{% if current_user.is_authenticated %}
+<h2>Your Recent Reviews</h2>
+<table class="table table-hover table-bordered container">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">Row</th>
+      <th scope="col">Review Type</th>
+      <th scope="col">Target ID</th>
+      <th scope="col">Rating</th>
+      <th scope="col">Comment</th>
+      <th scope="col">Time Submitted</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <th scope="row">{{ item.id }}</th>
+      <td>{{ item.review_type.capitalize() }}</td>
+      <td>{{ item.target_id }}</td>
+      <td>{{ item.rating }}</td>
+      <td>{{ item.comment }}</td>
+      <td>{{ item.time_submitted }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p><a href="{{ url_for('accounts.login') }}">Log in</a> to see your reviews!</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,24 @@
+.git
+.gitignore
+__pycache__
+**/__pycache__
+*.pyc
+.DS_Store
+.env
+.env.local
+.flaskenv
+.venv
+venv
+.pytest_cache
+node_modules
+
+# Local seed & admin artifacts
+db/data/generated
+db/setup.sh
+scripts/seed_neon.sh
+scripts/build_vector_index.py
+
+# Local dev docs
+README.md
+LICENSE
+.env.example

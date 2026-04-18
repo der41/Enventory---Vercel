@@ -45,7 +45,7 @@ def main() -> int:
     docs = [f"{pid}\n{name}\n{desc or ''}" for pid, name, desc in products]
     print(f"Embedding {len(docs)} products...")
 
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     store = FAISS.from_texts(docs, embeddings)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

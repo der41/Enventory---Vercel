@@ -5,6 +5,7 @@ __pycache__/
 
 # Env & secrets
 .env
+.env.example
 .env.local
 .flaskenv
 

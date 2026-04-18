@@ -60,7 +60,7 @@ def _get_embeddings() -> GoogleGenerativeAIEmbeddings:
     global _embeddings
     if _embeddings is None:
         _require_api_key()
-        _embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        _embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     return _embeddings
 
 

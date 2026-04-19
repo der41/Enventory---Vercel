@@ -55,8 +55,7 @@
         {% for product in products %}
         <tr data-updated="{{ product.timeadded }}" data-qty="{{ product.qtyavailable }}">
           <td class="align-middle d-flex align-items-center">
-            {% set img_path = 'images/' + product.name + '.png' %}
-            <img src="{{ image_url(img_path) }}" alt="{{ product.name }}" class="rounded mr-2" style="width:40px; height:40px; object-fit:cover;" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';">
+            <img src="{{ image_url(product.image) }}" alt="{{ product.name }}" class="rounded mr-2" style="width:40px; height:40px; object-fit:cover;" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';">
             <span class="font-weight-bold">{{ product.name }}</span>
           </td>
           <td class="align-middle">{{ product.description }}</td>

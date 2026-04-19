@@ -4,7 +4,7 @@ class Inventory:
     @staticmethod
     def get_full_inventory_by_seller(seller_id):
         return app.db.execute("""
-            SELECT p.id, p.name, p.description, i.qtyavailable, i.qtyinstock, i.qtyinprocess, i.timeadded
+            SELECT p.id, p.name, p.description, i.qtyavailable, i.qtyinstock, i.qtyinprocess, i.timeadded, p.image
             FROM Inventory i
             JOIN Products_2 p ON i.productid = p.id
             WHERE i.sellerid = :seller_id AND p.status = TRUE
